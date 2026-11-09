@@ -36,7 +36,7 @@
   <div class="card">
     <div class="logos" id="introLogos"></div>
     <h1 id="t">Galería de los programas en los territorios</h1>
-    <p>Las fotos aparecen a tu alrededor. La que mires se acerca y se ilumina. Usa audífonos o el sonido de las gafas. Para pasar de sala, mira los botones de abajo y aprieta el gatillo del control, o sostén la mirada sobre el botón.</p>
+    <p>Las fotos aparecen a tu alrededor. La que mires se acerca y se ilumina. Tiene música suave; sube el volumen de las gafas. Para pasar de sala, mira los botones de abajo y aprieta el gatillo del control, o sostén la mirada sobre el botón.</p>
     <div class="rooms" id="introRooms"></div>
     <div class="actions">
       <button id="enterVR" type="button">Entrar con las gafas</button>
@@ -243,33 +243,52 @@ AFRAME.registerComponent('gallery', {
   }
 });
 
-// sonido ambiental suave (WebAudio, sin archivos)
+// música original: piano suave + cajita de música, generada en el navegador
 const sfx = (() => {
-  let ctx, master, pad = [], on = true;
-  const chords = [[220, 277.2, 329.6], [196, 246.9, 293.7], [174.6, 220, 261.6], [164.8, 207.7, 246.9], [146.8, 185, 220], [130.8, 164.8, 196]];
+  let ctx, master, bus, on = true, timer, next = 0, step = 0, key = 0;
+  const KEYS = [60, 67, 65, 62, 69, 63];                 // tonalidad por sala (Do, Sol, Fa, Re, La, Mib)
+  const PROG = [[0, 4, 7], [-3, 0, 4], [-7, -3, 0], [-5, -1, 2]]; // I - vi - IV - V
+  const PENTA = [0, 2, 4, 7, 9, 12, 14, 16];
+  const BEAT = 60 / 72 / 2;                               // corcheas a 72 bpm
+  const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+  function note(m, t, vel, bell) {
+    const f = hz(m), g = ctx.createGain(); g.connect(bus);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vel, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + (bell ? 3.2 : 2.4));
+    [[1, 1, 'sine'], [2, bell ? 0.25 : 0.35, 'sine'], [bell ? 4 : 3, bell ? 0.12 : 0.08, bell ? 'sine' : 'triangle']].forEach(([mul, amp, type]) => {
+      const o = ctx.createOscillator(), a = ctx.createGain(); o.type = type; o.frequency.value = f * mul; a.gain.value = amp;
+      o.connect(a); a.connect(g); o.start(t); o.stop(t + 3.4);
+    });
+  }
+  function schedule() {
+    while (next < ctx.currentTime + 0.3) {
+      const bar = Math.floor(step / 8) % 4, pos = step % 8, root = KEYS[key] - 12, ch = PROG[bar];
+      const arp = [0, 1, 2, 1, 0, 1, 2, 1][pos];           // arpegio suave en la mano izquierda
+      note(root + ch[arp] + (pos === 0 ? -12 : 0), next, pos === 0 ? 0.11 : 0.06, false);
+      if (pos % 2 === 0 && Math.random() < 0.55) {         // melodía de cajita de música
+        const m = KEYS[key] + 12 + PENTA[Math.floor(Math.random() * PENTA.length)];
+        note(m, next + (Math.random() < 0.3 ? BEAT / 2 : 0), 0.05, true);
+      }
+      next += BEAT * (1 + (Math.random() - 0.5) * 0.04); step++;
+    }
+  }
   function init() {
     if (ctx) return; ctx = new (window.AudioContext || window.webkitAudioContext)();
     master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
-    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.connect(master);
-    for (let i = 0; i < 6; i++) {
-      const o = ctx.createOscillator(), g = ctx.createGain(); o.type = i % 2 ? 'triangle' : 'sine';
-      o.frequency.value = chords[0][i % 3] * (i < 3 ? 1 : 0.5) * (1 + (i - 2.5) * 0.002);
-      g.gain.value = 0.05; o.connect(g); g.connect(lp); o.start(); pad.push(o);
-      const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.05 + i * 0.03; lg.gain.value = 0.03; lfo.connect(lg); lg.connect(g.gain); lfo.start();
-    }
-    master.gain.linearRampToValueAtTime(on ? 0.5 : 0, ctx.currentTime + 3);
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200; lp.connect(master);
+    bus = ctx.createGain(); bus.connect(lp);
+    const d = ctx.createDelay(1), fb = ctx.createGain(), wet = ctx.createGain(), dl = ctx.createBiquadFilter(); // eco suave
+    d.delayTime.value = 0.42; fb.gain.value = 0.32; wet.gain.value = 0.35; dl.type = 'lowpass'; dl.frequency.value = 1800;
+    bus.connect(d); d.connect(dl); dl.connect(fb); fb.connect(d); dl.connect(wet); wet.connect(lp);
+    next = ctx.currentTime + 0.2; timer = setInterval(schedule, 100);
+    master.gain.linearRampToValueAtTime(on ? 0.8 : 0, ctx.currentTime + 2.5);
   }
   return {
     start() { try { init(); ctx.resume(); } catch (e) {} },
-    room(k) { if (!ctx) return; const c = chords[k % chords.length];
-      pad.forEach((o, i) => o.frequency.setTargetAtTime(c[i % 3] * (i < 3 ? 1 : 0.5) * (1 + (i - 2.5) * 0.002), ctx.currentTime, 0.8)); },
-    whoosh() { if (!ctx || !on) return;
-      const b = ctx.createBuffer(1, ctx.sampleRate * 1.2, ctx.sampleRate), d = b.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / d.length);
-      const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-      f.type = 'bandpass'; f.frequency.setValueAtTime(300, ctx.currentTime); f.frequency.exponentialRampToValueAtTime(2200, ctx.currentTime + 1);
-      g.gain.value = 0.12; s.buffer = b; s.connect(f); f.connect(g); g.connect(ctx.destination); s.start(); },
-    toggle() { on = !on; if (ctx) master.gain.setTargetAtTime(on ? 0.5 : 0, ctx.currentTime, 0.3); return on; }
+    room(k) { key = k % KEYS.length; step = 0; },
+    whoosh() { if (!ctx || !on) return; const t = ctx.currentTime;     // campanitas que suben al cambiar de sala
+      [0, 4, 7, 12, 16].forEach((m, i) => note(KEYS[key] + 12 + m, t + i * 0.07, 0.05, true)); },
+    toggle() { on = !on; if (ctx) master.gain.setTargetAtTime(on ? 0.8 : 0, ctx.currentTime, 0.3); return on; }
   };
 })();
 
