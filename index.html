@@ -1,0 +1,357 @@
+<meta charset="utf-8">
+<title>Galería de Programas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
+<style>
+  /* Página de una sola pantalla: escena VR a pantalla completa + portada de entrada */
+  :root { --bg:#0e0f12; --fg:#f4f4f5; --muted:#b9bcc4; --panel:#17181d; --line:#2a2c33; --accent:#0AABCC; color-scheme:dark;
+          --font:'Poppins', system-ui, sans-serif; }
+  [hidden] { display:none !important; }
+  html,body { height:100%; background:var(--bg); color:var(--fg); font-family:var(--font); overflow:hidden; }
+  #intro { position:absolute; inset:0; z-index:20; display:flex; align-items:center; justify-content:center;
+           background:rgba(14,15,18,.92); padding-block:24px;
+           padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); }
+  .card { max-width:560px; width:100%; display:flex; flex-direction:column; gap:20px; }
+  .logos { display:flex; gap:10px; }
+  .logos img { width:52px; height:52px; }
+  h1 { font-size:clamp(28px,6vw,40px); font-weight:700; line-height:1.1; margin:0; text-wrap:balance; }
+  p { margin:0; color:var(--muted); line-height:1.6; font-size:15px; }
+  .rooms { display:flex; flex-direction:column; gap:6px; font-size:14px; color:var(--muted); }
+  .rooms b { color:var(--fg); font-weight:600; }
+  .actions { display:flex; flex-wrap:wrap; gap:12px; }
+  button { font:600 16px var(--font); border-radius:999px; padding:14px 26px; cursor:pointer; border:1px solid var(--line); }
+  #enterVR { background:var(--fg); color:var(--bg); border-color:var(--fg); }
+  #enterScreen { background:transparent; color:var(--fg); }
+  button:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+  #hud { position:absolute; z-index:10; left:max(16px, env(safe-area-inset-left,0px)); bottom:calc(16px + env(safe-area-inset-bottom,0px));
+         display:flex; gap:8px; align-items:center; }
+  #hud button { padding:10px 18px; font-size:14px; background:rgba(23,24,29,.85); color:var(--fg); }
+  #hudName { font-size:13px; color:var(--muted); padding:0 6px; }
+  .a-enter-vr { bottom:calc(16px + env(safe-area-inset-bottom,0px)) !important; right:max(16px, env(safe-area-inset-right,0px)) !important; }
+  @media (max-width:480px){ #hudName{ display:none; } }
+</style>
+
+<div id="intro" role="dialog" aria-labelledby="t">
+  <div class="card">
+    <div class="logos" id="introLogos"></div>
+    <h1 id="t">Galería de los programas en los territorios</h1>
+    <p>Las fotos aparecen a tu alrededor. La que mires se acerca y se ilumina. Usa audífonos o el sonido de las gafas. Para pasar de sala, mira los botones de abajo y aprieta el gatillo del control, o sostén la mirada sobre el botón.</p>
+    <div class="rooms" id="introRooms"></div>
+    <div class="actions">
+      <button id="enterVR" type="button">Entrar con las gafas</button>
+      <button id="enterScreen" type="button">Ver en pantalla</button>
+    </div>
+  </div>
+</div>
+
+<div id="hud" hidden>
+  <button id="hudPrev" type="button" aria-label="Sala anterior">Anterior</button>
+  <button id="hudNext" type="button" aria-label="Siguiente sala">Siguiente</button>
+  <button id="hudSound" type="button" aria-pressed="true">Sonido: sí</button>
+  <span id="hudName"></span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/aframe@1.6.0/dist/aframe-v1.6.0.min.js"></script>
+<script>
+// datos de las salas (generado)
+const ROOMS = [{"name": "Nuevas Tecnologías", "color": "#0AABCC", "territorios": "El Carmen de Viboral · La Ceja · Medellín · Nuquí", "photos": [{"src": "img/r0_00.jpg", "ar": 0.75}, {"src": "img/r0_01.jpg", "ar": 0.75}, {"src": "img/r0_02.jpg", "ar": 0.75}, {"src": "img/r0_03.jpg", "ar": 0.75}, {"src": "img/r0_04.jpg", "ar": 1.3333}, {"src": "img/r0_05.jpg", "ar": 0.75}, {"src": "img/r0_06.jpg", "ar": 0.75}, {"src": "img/r0_07.jpg", "ar": 0.75}, {"src": "img/r0_08.jpg", "ar": 0.75}, {"src": "img/r0_09.jpg", "ar": 0.75}, {"src": "img/r0_10.jpg", "ar": 0.75}, {"src": "img/r0_11.jpg", "ar": 1.7766}, {"src": "img/r0_12.jpg", "ar": 0.75}, {"src": "img/r0_13.jpg", "ar": 0.75}, {"src": "img/r0_14.jpg", "ar": 1.3333}, {"src": "img/r0_15.jpg", "ar": 1.4159}]}, {"name": "Inglés", "color": "#EF4826", "territorios": "El Carmen de Viboral · Medellín", "photos": [{"src": "img/r1_00.jpg", "ar": 1.3333}, {"src": "img/r1_01.jpg", "ar": 0.75}, {"src": "img/r1_02.jpg", "ar": 1.3333}, {"src": "img/r1_03.jpg", "ar": 1.3333}, {"src": "img/r1_04.jpg", "ar": 0.75}, {"src": "img/r1_05.jpg", "ar": 1.3333}, {"src": "img/r1_06.jpg", "ar": 0.75}]}, {"name": "Habilidades Socioemocionales", "color": "#FBB317", "territorios": "Barbosa · El Bagre · El Carmen de Viboral · La Ceja · Medellín · Remedios - Segovia · Tarso", "photos": [{"src": "img/r2_00.jpg", "ar": 0.75}, {"src": "img/r2_01.jpg", "ar": 1.0894}, {"src": "img/r2_02.jpg", "ar": 0.75}, {"src": "img/r2_03.jpg", "ar": 0.75}, {"src": "img/r2_04.jpg", "ar": 0.75}, {"src": "img/r2_05.jpg", "ar": 0.6664}, {"src": "img/r2_06.jpg", "ar": 1.5005}, {"src": "img/r2_07.jpg", "ar": 0.75}]}];
+const PHOTO_H = 1.25, EYE = 1.6, ZOOM = 1.8, PULL = 1.4;
+const easeOut = x => 1 - Math.pow(1 - x, 3);
+
+// textura de brillo suave (rectángulo difuminado)
+function glowTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  const im = g.createImageData(256, 256);
+  for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
+    const dx = Math.max(Math.abs(x - 127.5) - 40, 0), dy = Math.max(Math.abs(y - 127.5) - 40, 0);
+    const a = Math.exp(-Math.pow(Math.hypot(dx, dy) / 30, 2)), i = (y * 256 + x) * 4;
+    im.data[i] = im.data[i + 1] = im.data[i + 2] = 255; im.data[i + 3] = a * 255;
+  }
+  g.putImageData(im, 0, 0); return new THREE.CanvasTexture(c);
+}
+// textura de partícula (punto difuso)
+function dotTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+  const r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.35, 'rgba(255,255,255,.5)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = r; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c);
+}
+
+// ambiente: cielo degradado, piso con brillo, partículas flotando; cambia de color por sala
+AFRAME.registerComponent('ambient', {
+  init() {
+    const o = this.el.object3D;
+    this.col = new THREE.Color(ROOMS[0].color); this.target = this.col.clone();
+    this.sky = new THREE.Mesh(new THREE.SphereGeometry(60, 48, 24), new THREE.ShaderMaterial({
+      side: THREE.BackSide, depthWrite: false, fog: false,
+      uniforms: { c: { value: this.col } },
+      vertexShader: 'varying vec3 p; void main(){ p = normalize(position); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+      fragmentShader: 'uniform vec3 c; varying vec3 p; void main(){ float h=p.y; vec3 top=vec3(.012,.014,.03); vec3 hor=mix(vec3(.03,.035,.06),c*.45,.4);' +
+        ' vec3 col = h>0. ? mix(hor, top, pow(h,.55)) : mix(hor*.6, vec3(.01), pow(-h,.4)); gl_FragColor=vec4(col,1.); }'
+    }));
+    o.add(this.sky);
+    this.floor = new THREE.Mesh(new THREE.CircleGeometry(30, 96), new THREE.ShaderMaterial({
+      transparent: true, depthWrite: false, fog: false,
+      uniforms: { c: { value: this.col }, t: { value: 0 } },
+      vertexShader: 'varying vec2 v; void main(){ v = position.xy; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+      fragmentShader: 'uniform vec3 c; uniform float t; varying vec2 v; void main(){ float r=length(v);' +
+        ' float glow=exp(-r*.4)*.3; float rings=smoothstep(.04,0.,abs(fract(r*.8-t*.08)-.5)-.46)*exp(-r*.18)*.25;' +
+        ' vec3 col=vec3(.03,.033,.045)+c*(glow+rings); float a=1.-smoothstep(14.,30.,r); gl_FragColor=vec4(col,a); }'
+    }));
+    this.floor.rotation.x = -Math.PI / 2; o.add(this.floor);
+    // partículas
+    const N = 700, pos = new Float32Array(N * 3); this.seed = new Float32Array(N);
+    for (let i = 0; i < N; i++) {
+      const a = Math.random() * Math.PI * 2, r = 1.8 + Math.random() * 13;
+      pos[i * 3] = Math.cos(a) * r; pos[i * 3 + 1] = Math.random() * 9; pos[i * 3 + 2] = Math.sin(a) * r; this.seed[i] = Math.random() * 10;
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    this.pts = new THREE.Points(g, new THREE.PointsMaterial({ size: 0.07, map: dotTex(), color: this.col.clone(), transparent: true,
+      opacity: .85, depthWrite: false, blending: THREE.AdditiveBlending }));
+    o.add(this.pts);
+  },
+  setColor(hex) { this.target.set(hex); },
+  tick(t, dt) {
+    const k = 1 - Math.pow(0.15, dt / 1000);
+    this.col.lerp(this.target, k);
+    this.pts.material.color.copy(this.col).lerp(new THREE.Color(1, 1, 1), .35);
+    this.floor.material.uniforms.t.value = t / 1000;
+    const p = this.pts.geometry.attributes.position.array, s = dt / 1000;
+    for (let i = 0; i < this.seed.length; i++) {
+      p[i * 3 + 1] += s * (0.06 + (this.seed[i] % 1) * 0.08);
+      p[i * 3] += Math.sin(t / 2000 + this.seed[i]) * s * 0.03;
+      if (p[i * 3 + 1] > 9) p[i * 3 + 1] = 0;
+    }
+    this.pts.geometry.attributes.position.needsUpdate = true;
+  }
+});
+
+// galería: fotos con marco y brillo; la que miras se agranda y las demás se atenúan
+AFRAME.registerComponent('gallery', {
+  init() {
+    this.idx = 0; this.items = []; this.leaving = []; this.loader = new THREE.TextureLoader();
+    this.group = new THREE.Group(); this.el.object3D.add(this.group);
+    this.cam = document.getElementById('cam'); this.glow = glowTex();
+    this.fwd = new THREE.Vector3(); this.tmp = new THREE.Vector3(); this.camPos = new THREE.Vector3();
+    this.busy = false; this.focus = 0;
+    this.build(0);
+  },
+  layout(n) {
+    const rows = n > 10 ? 2 : 1, per = Math.ceil(n / rows);
+    const R = Math.max(3.4, per * 2.0 / (2 * Math.PI));
+    const ys = rows === 2 ? [2.3, 0.95] : [EYE];
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const r = Math.floor(i / per), j = i % per, cnt = r === rows - 1 ? n - per * r : per;
+      const a = (j / cnt) * Math.PI * 2 + (r ? Math.PI / cnt : 0);
+      out.push({ a, y: ys[r], R });
+    }
+    return out;
+  },
+  build(k) {
+    const room = ROOMS[k], pos = this.layout(room.photos.length), col = new THREE.Color(room.color);
+    this.t0 = performance.now();
+    room.photos.forEach((p, i) => {
+      const w = PHOTO_H * p.ar, o = pos[i];
+      const g = new THREE.Group();
+      const glow = new THREE.Mesh(new THREE.PlaneGeometry((w + 0.6) * 2, (PHOTO_H + 0.6) * 2),
+        new THREE.MeshBasicMaterial({ map: this.glow, color: col, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+      glow.position.z = -0.03;
+      const frame = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.05, PHOTO_H + 0.05),
+        new THREE.MeshBasicMaterial({ color: 0xf2f2f2, transparent: true, opacity: 0 }));
+      frame.position.z = -0.01;
+      const mat = new THREE.MeshBasicMaterial({ color: 0x24262d, transparent: true, opacity: 0 });
+      const photo = new THREE.Mesh(new THREE.PlaneGeometry(w, PHOTO_H), mat);
+      g.add(glow, frame, photo);
+      this.loader.load(p.src, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; mat.map = t; mat.color.set(0xffffff); mat.needsUpdate = true; });
+      g.userData = { a: o.a, y: o.y, R: o.R, s: 0, dim: 1, delay: 250 + i * 90, ph: Math.random() * 6, photo, frame, glow };
+      this.group.add(g); this.items.push(g);
+    });
+    const R = pos[0].R;
+    const sign = document.getElementById('sign');
+    sign.setAttribute('src', `ui/sign${k}.png`);
+    this.signY = room.photos.length > 10 ? 3.5 : 2.85;
+    sign.setAttribute('position', `0 ${this.signY} ${-(R - 0.05)}`);
+    document.getElementById('floorLogo').setAttribute('src', `ui/logo${k}.png`);
+    const ring = document.getElementById('ring');
+    ring.setAttribute('material', `color:${room.color}; shader:flat; side:double; transparent:true; opacity:0.9`);
+    ring.setAttribute('geometry', `primitive:ring; radiusInner:${R - 0.03}; radiusOuter:${R + 0.03}; segmentsTheta:128`);
+    document.querySelector('[ambient]').components.ambient.setColor(room.color);
+    document.getElementById('hudName').textContent = `${room.name} · Sala ${k + 1} de ${ROOMS.length}`;
+  },
+  dispose(g) {
+    g.children.forEach(m => { m.material.map && m.material.map !== this.glow && m.material.map.dispose(); m.material.dispose(); m.geometry.dispose(); });
+    this.group.remove(g);
+  },
+  go(step) {
+    if (this.busy) return; this.busy = true;
+    sfx.whoosh();
+    const now = performance.now();
+    this.items.forEach((g, i) => { g.userData.out = now + i * 25; });
+    this.leaving = this.items; this.items = [];
+    setTimeout(() => {
+      this.leaving.forEach(g => this.dispose(g)); this.leaving = [];
+      this.idx = (this.idx + step + ROOMS.length) % ROOMS.length; this.build(this.idx); sfx.room(this.idx);
+      setTimeout(() => this.busy = false, 900);
+    }, 900);
+  },
+  place(g, rad, y, scale, op) {
+    const u = g.userData;
+    g.position.set(Math.sin(u.a) * rad, y, -Math.cos(u.a) * rad);
+    g.lookAt(0, y, 0); g.scale.setScalar(scale);
+    u.photo.material.opacity = op; u.frame.material.opacity = op;
+  },
+  tick(t, dt) {
+    const now = performance.now(), sec = t / 1000;
+    // salida: las fotos se van hacia afuera y hacia arriba
+    for (const g of this.leaving) {
+      const u = g.userData, x = Math.min(1, Math.max(0, (now - u.out) / 700)), e = x * x;
+      this.place(g, u.R + e * 6, u.y + e * 2.5, 1 - e * 0.3, 1 - x);
+      u.glow.material.opacity = 0.25 * (1 - x);
+      g.rotation.z += e * 0.02;
+    }
+    if (!this.items.length) return;
+    const c = this.cam.object3D; c.getWorldDirection(this.fwd); this.fwd.negate(); c.getWorldPosition(this.camPos);
+    let best = null, bestAng = THREE.MathUtils.degToRad(13);
+    for (const g of this.items) {
+      const u = g.userData;
+      this.tmp.set(Math.sin(u.a) * u.R, u.y, -Math.cos(u.a) * u.R).sub(this.camPos).normalize();
+      const ang = this.tmp.angleTo(this.fwd);
+      if (ang < bestAng && now - this.t0 > u.delay + 900) { bestAng = ang; best = g; }
+    }
+    const k = 1 - Math.pow(0.002, dt / 1000), kd = 1 - Math.pow(0.02, dt / 1000);
+    for (const g of this.items) {
+      const u = g.userData;
+      // entrada: suben desde abajo y desde lejos, girando hacia su lugar
+      const x = Math.min(1, Math.max(0, (now - this.t0 - u.delay) / 1300)), e = easeOut(x);
+      u.s += ((g === best ? 1 : 0) - u.s) * k;
+      u.dim += ((best && g !== best ? 0.4 : 1) - u.dim) * kd;
+      const s = u.s, bob = Math.sin(sec * 0.7 + u.ph) * 0.035 * (1 - s);
+      const rad = (u.R + (1 - e) * 7) - PULL * s;
+      const y = (u.y - (1 - e) * 2.2) + (EYE - u.y) * s * 0.6 + bob;
+      this.place(g, rad, y, (0.6 + 0.4 * e) * (1 + (ZOOM - 1) * s), e);
+      g.rotateY((1 - e) * 1.2);
+      const d = u.dim;
+      if (u.photo.material.map) u.photo.material.color.setScalar(d);
+      u.frame.material.color.setScalar(0.95 * d);
+      u.glow.material.opacity = e * (0.1 + 0.5 * s) * d;
+      g.renderOrder = s > 0.05 ? 2 : 0;
+    }
+    const sign = document.getElementById('sign').object3D;
+    sign.position.y = this.signY + Math.sin(sec * 0.6) * 0.05;
+  }
+});
+
+// sonido ambiental suave (WebAudio, sin archivos)
+const sfx = (() => {
+  let ctx, master, pad = [], on = true;
+  const chords = [[220, 277.2, 329.6], [196, 246.9, 293.7], [174.6, 220, 261.6], [164.8, 207.7, 246.9], [146.8, 185, 220], [130.8, 164.8, 196]];
+  function init() {
+    if (ctx) return; ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.connect(master);
+    for (let i = 0; i < 6; i++) {
+      const o = ctx.createOscillator(), g = ctx.createGain(); o.type = i % 2 ? 'triangle' : 'sine';
+      o.frequency.value = chords[0][i % 3] * (i < 3 ? 1 : 0.5) * (1 + (i - 2.5) * 0.002);
+      g.gain.value = 0.05; o.connect(g); g.connect(lp); o.start(); pad.push(o);
+      const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.05 + i * 0.03; lg.gain.value = 0.03; lfo.connect(lg); lg.connect(g.gain); lfo.start();
+    }
+    master.gain.linearRampToValueAtTime(on ? 0.5 : 0, ctx.currentTime + 3);
+  }
+  return {
+    start() { try { init(); ctx.resume(); } catch (e) {} },
+    room(k) { if (!ctx) return; const c = chords[k % chords.length];
+      pad.forEach((o, i) => o.frequency.setTargetAtTime(c[i % 3] * (i < 3 ? 1 : 0.5) * (1 + (i - 2.5) * 0.002), ctx.currentTime, 0.8)); },
+    whoosh() { if (!ctx || !on) return;
+      const b = ctx.createBuffer(1, ctx.sampleRate * 1.2, ctx.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * i / d.length);
+      const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+      f.type = 'bandpass'; f.frequency.setValueAtTime(300, ctx.currentTime); f.frequency.exponentialRampToValueAtTime(2200, ctx.currentTime + 1);
+      g.gain.value = 0.12; s.buffer = b; s.connect(f); f.connect(g); g.connect(ctx.destination); s.start(); },
+    toggle() { on = !on; if (ctx) master.gain.setTargetAtTime(on ? 0.5 : 0, ctx.currentTime, 0.3); return on; }
+  };
+})();
+
+
+// panel de botones: sigue el giro de la cabeza salvo cuando miras hacia abajo
+AFRAME.registerComponent('follow-yaw', {
+  init() { this.e = new THREE.Euler(0, 0, 0, 'YXZ'); this.cam = document.getElementById('cam'); },
+  tick(t, dt) {
+    this.e.setFromQuaternion(this.cam.object3D.getWorldQuaternion(new THREE.Quaternion()));
+    if (this.e.x < -0.35) return;
+    let d = this.e.y - this.el.object3D.rotation.y;
+    d = Math.atan2(Math.sin(d), Math.cos(d));
+    if (Math.abs(d) > 0.5) this.el.object3D.rotation.y += d * (1 - Math.pow(0.05, dt / 1000));
+  }
+});
+
+// botón clicable con efecto al apuntar
+AFRAME.registerComponent('nav-btn', {
+  schema: { step: { type: 'int' } },
+  init() {
+    const el = this.el;
+    el.addEventListener('mouseenter', () => el.object3D.scale.setScalar(1.12));
+    el.addEventListener('mouseleave', () => el.object3D.scale.setScalar(1));
+    el.addEventListener('click', () => go(this.data.step));
+  }
+});
+
+// joystick izquierda/derecha cambia de sala
+AFRAME.registerComponent('stick-nav', {
+  init() {
+    this.ready = true;
+    this.el.addEventListener('thumbstickmoved', e => {
+      const x = e.detail.x;
+      if (this.ready && Math.abs(x) > 0.8) { this.ready = false; go(x > 0 ? 1 : -1); }
+      if (Math.abs(x) < 0.3) this.ready = true;
+    });
+  }
+});
+
+function go(step) { document.querySelector('[gallery]').components.gallery.go(step); }
+</script>
+
+<a-scene renderer="colorManagement:true; antialias:true; foveationLevel:1" vr-mode-ui="enabled:true"
+         cursor="rayOrigin:mouse" raycaster="objects:.clickable" background="color:#05060a" fog="type:exponential; color:#07080d; density:0.018">
+  <a-entity ambient></a-entity>
+  <a-entity gallery></a-entity>
+  <a-entity id="rig">
+    <a-camera id="cam" position="0 1.6 0" wasd-controls-enabled="false" look-controls="reverseMouseDrag:true">
+      <a-entity cursor="fuse:true; fuseTimeout:1500" raycaster="objects:.clickable; far:4"
+                position="0 0 -1" geometry="primitive:ring; radiusInner:0.008; radiusOuter:0.013"
+                material="color:#fff; shader:flat; opacity:0.8"
+                animation__fuse="startEvents:fusing; property:scale; from:1 1 1; to:2.2 2.2 2.2; dur:1500"
+                animation__reset="startEvents:mouseleave; property:scale; to:1 1 1; dur:120"></a-entity>
+    </a-camera>
+    <a-entity laser-controls="hand:right" raycaster="objects:.clickable; far:6; lineColor:#ffffff; lineOpacity:0.6" stick-nav></a-entity>
+    <a-entity laser-controls="hand:left" raycaster="objects:.clickable; far:6; lineColor:#ffffff; lineOpacity:0.6" stick-nav></a-entity>
+  </a-entity>
+
+  <a-entity follow-yaw>
+    <a-entity position="0 0.9 -1.25" rotation="-38 0 0">
+      <a-image class="clickable" nav-btn="step:-1" src="ui/prev.png" material="transparent:true; alphaTest:0.4; shader:flat" width="0.46" height="0.133" position="-0.27 0 0"></a-image>
+      <a-image class="clickable" nav-btn="step:1" src="ui/next.png" material="transparent:true; alphaTest:0.4; shader:flat" width="0.46" height="0.133" position="0.27 0 0"></a-image>
+    </a-entity>
+  </a-entity>
+
+  <a-image id="sign" width="2.2" height="0.484" material="shader:flat; transparent:true"></a-image>
+  <a-entity id="ring" rotation="-90 0 0" position="0 0.01 0"></a-entity>
+  <a-image id="floorLogo" width="1.1" height="1.1" rotation="-90 0 0" position="0 0.02 0" material="shader:flat; transparent:true; alphaTest:0.4"></a-image>
+</a-scene>
+
+<script>
+// portada y botones de pantalla
+const intro = document.getElementById('intro'), hud = document.getElementById('hud'), scene = document.querySelector('a-scene');
+document.getElementById('introLogos').innerHTML = ROOMS.map((r, i) => `<img src="ui/logo${i}.png" alt="${r.name}">`).join('');
+document.getElementById('introRooms').innerHTML = ROOMS.map((r, i) => `<div><b>Sala ${i + 1}: ${r.name}</b> · ${r.photos.length} fotos</div>`).join('');
+function start() { intro.hidden = true; hud.hidden = false; sfx.start(); }
+document.getElementById('enterScreen').onclick = start;
+document.getElementById('enterVR').onclick = () => { start(); try { scene.enterVR(); } catch (e) {} };
+if (!navigator.xr) document.getElementById('enterVR').hidden = true;
+else navigator.xr.isSessionSupported('immersive-vr').then(ok => { if (!ok) document.getElementById('enterVR').hidden = true; }).catch(() => {});
+document.getElementById('hudPrev').onclick = () => go(-1);
+document.getElementById('hudNext').onclick = () => go(1);
+document.getElementById('hudSound').onclick = e => { const on = sfx.toggle(); e.target.textContent = 'Sonido: ' + (on ? 'sí' : 'no'); e.target.setAttribute('aria-pressed', on); };
+addEventListener('keydown', e => { if (e.key === 'ArrowRight') go(1); if (e.key === 'ArrowLeft') go(-1); });
+</script>
