@@ -135,6 +135,7 @@ AFRAME.registerComponent('gallery', {
     this.cam = document.getElementById('cam'); this.glow = glowTex();
     this.fwd = new THREE.Vector3(); this.tmp = new THREE.Vector3(); this.camPos = new THREE.Vector3();
     this.busy = false; this.focus = 0;
+    this.top = new THREE.Group(); this.top.position.y = EYE; this.el.object3D.add(this.top); this.topItems = [];
     this.build(0);
   },
   layout(n) {
@@ -168,6 +169,7 @@ AFRAME.registerComponent('gallery', {
       g.userData = { a: o.a, y: o.y, R: o.R, s: 0, dim: 1, delay: 250 + i * 90, ph: Math.random() * 6, photo, frame, glow };
       this.group.add(g); this.items.push(g);
     });
+    this.buildTop(k, col);
     const R = pos[0].R;
     const sign = document.getElementById('sign');
     sign.setAttribute('src', `ui/sign${k}.png`);
@@ -180,6 +182,30 @@ AFRAME.registerComponent('gallery', {
     document.querySelector('[ambient]').components.ambient.setColor(room.color);
     document.getElementById('hudName').textContent = `${room.name} · Sala ${k + 1} de ${ROOMS.length}`;
   },
+  buildTop(k, col) {
+    // anillo superior: fotos de las otras salas, inclinadas hacia quien mira
+    const pool = [];
+    ROOMS.forEach((r, i) => { if (i !== k) r.photos.forEach(p => pool.push(p)); });
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    const pick = pool.slice(0, 8), H = 1.05, D = 4.2, el = THREE.MathUtils.degToRad(58);
+    pick.forEach((p, i) => {
+      const w = H * p.ar, a = (i / pick.length) * Math.PI * 2 + Math.PI / pick.length;
+      const g = new THREE.Group();
+      const glow = new THREE.Mesh(new THREE.PlaneGeometry((w + 0.6) * 2, (H + 0.6) * 2),
+        new THREE.MeshBasicMaterial({ map: this.glow, color: col, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+      glow.position.z = -0.03;
+      const frame = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.05, H + 0.05), new THREE.MeshBasicMaterial({ color: 0xf2f2f2, transparent: true, opacity: 0 }));
+      frame.position.z = -0.01;
+      const mat = new THREE.MeshBasicMaterial({ color: 0x24262d, transparent: true, opacity: 0 });
+      const photo = new THREE.Mesh(new THREE.PlaneGeometry(w, H), mat);
+      g.add(glow, frame, photo);
+      this.loader.load(p.src, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; mat.map = t; mat.color.set(0xffffff); mat.needsUpdate = true; });
+      g.position.set(Math.sin(a) * D * Math.cos(el), D * Math.sin(el), -Math.cos(a) * D * Math.cos(el));
+      g.lookAt(0, 0, 0);
+      g.userData = { s: 0, delay: 1200 + i * 120, photo, frame, glow };
+      this.top.add(g); this.topItems.push(g);
+    });
+  },
   dispose(g) {
     g.children.forEach(m => { m.material.map && m.material.map !== this.glow && m.material.map.dispose(); m.material.dispose(); m.geometry.dispose(); });
     this.group.remove(g);
@@ -190,8 +216,10 @@ AFRAME.registerComponent('gallery', {
     const now = performance.now();
     this.items.forEach((g, i) => { g.userData.out = now + i * 25; });
     this.leaving = this.items; this.items = [];
+    this.topOut = this.topItems; this.topItems = [];
     setTimeout(() => {
       this.leaving.forEach(g => this.dispose(g)); this.leaving = [];
+      this.topOut.forEach(g => { this.dispose(g); this.top.remove(g); }); this.topOut = [];
       this.idx = (this.idx + step + ROOMS.length) % ROOMS.length; this.build(this.idx); sfx.room(this.idx);
       setTimeout(() => this.busy = false, 900);
     }, 900);
@@ -211,6 +239,7 @@ AFRAME.registerComponent('gallery', {
       u.glow.material.opacity = 0.25 * (1 - x);
       g.rotation.z += e * 0.02;
     }
+    (this.topOut || []).forEach(g => { const u = g.userData; u.photo.material.opacity = u.frame.material.opacity = Math.max(0, u.photo.material.opacity - dt / 500); u.glow.material.opacity = 0; });
     if (!this.items.length) return;
     const c = this.cam.object3D; c.getWorldDirection(this.fwd); this.fwd.negate(); c.getWorldPosition(this.camPos);
     let best = null, bestAng = THREE.MathUtils.degToRad(13);
@@ -237,6 +266,20 @@ AFRAME.registerComponent('gallery', {
       u.frame.material.color.setScalar(0.95 * d);
       u.glow.material.opacity = e * (0.1 + 0.5 * s) * d;
       g.renderOrder = s > 0.05 ? 2 : 0;
+    }
+    // anillo superior: gira despacio; la foto que miras arriba se agranda
+    this.top.rotation.y += dt / 1000 * 0.03;
+    let topBest = null, topAng = THREE.MathUtils.degToRad(14);
+    for (const g of this.topItems) {
+      g.getWorldPosition(this.tmp); this.tmp.sub(this.camPos).normalize();
+      const ang = this.tmp.angleTo(this.fwd); if (ang < topAng) { topAng = ang; topBest = g; }
+    }
+    for (const g of this.topItems) {
+      const u = g.userData, e = easeOut(Math.min(1, Math.max(0, (now - this.t0 - u.delay) / 1500)));
+      u.s += ((g === topBest ? 1 : 0) - u.s) * k;
+      g.scale.setScalar((0.5 + 0.5 * e) * (1 + 0.6 * u.s));
+      u.photo.material.opacity = u.frame.material.opacity = e;
+      u.glow.material.opacity = e * (0.08 + 0.5 * u.s);
     }
     const sign = document.getElementById('sign').object3D;
     sign.position.y = this.signY + Math.sin(sec * 0.6) * 0.05;
