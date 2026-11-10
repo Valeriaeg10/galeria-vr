@@ -36,7 +36,7 @@
   <div class="card">
     <div class="logos" id="introLogos"></div>
     <h1 id="t">Galería de los programas en los territorios</h1>
-    <p>Las fotos aparecen a tu alrededor. La que mires se acerca y se ilumina. Tiene música suave; sube el volumen de las gafas. Para pasar de sala, mira los botones de abajo y aprieta el gatillo del control, o sostén la mirada sobre el botón.</p>
+    <p>Al entrar a cada sala te recibe el personaje del programa. Luego las fotos aparecen a tu alrededor. La que mires se acerca y se ilumina. Tiene música suave; sube el volumen de las gafas. Para pasar de sala, mira los botones de abajo y aprieta el gatillo del control, o sostén la mirada sobre el botón.</p>
     <div class="rooms" id="introRooms"></div>
     <div class="actions">
       <button id="enterVR" type="button">Entrar con las gafas</button>
@@ -55,9 +55,11 @@
 <script src="https://cdn.jsdelivr.net/npm/aframe@1.6.0/dist/aframe-v1.6.0.min.js"></script>
 <script>
 // datos de las salas (generado)
-const ROOMS = [{"name": "Nuevas Tecnologías", "color": "#0AABCC", "territorios": "El Carmen de Viboral · La Ceja · Medellín · Nuquí", "photos": [{"src": "img/r0_00.jpg", "ar": 0.75}, {"src": "img/r0_01.jpg", "ar": 0.75}, {"src": "img/r0_02.jpg", "ar": 0.75}, {"src": "img/r0_03.jpg", "ar": 0.75}, {"src": "img/r0_04.jpg", "ar": 1.3333}, {"src": "img/r0_05.jpg", "ar": 0.75}, {"src": "img/r0_06.jpg", "ar": 0.75}, {"src": "img/r0_07.jpg", "ar": 0.75}, {"src": "img/r0_08.jpg", "ar": 0.75}, {"src": "img/r0_09.jpg", "ar": 0.75}, {"src": "img/r0_10.jpg", "ar": 0.75}, {"src": "img/r0_11.jpg", "ar": 1.7766}, {"src": "img/r0_12.jpg", "ar": 0.75}, {"src": "img/r0_13.jpg", "ar": 0.75}, {"src": "img/r0_14.jpg", "ar": 1.3333}, {"src": "img/r0_15.jpg", "ar": 1.4159}]}, {"name": "Inglés", "color": "#EF4826", "territorios": "El Carmen de Viboral · Medellín", "photos": [{"src": "img/r1_00.jpg", "ar": 1.3333}, {"src": "img/r1_01.jpg", "ar": 0.75}, {"src": "img/r1_02.jpg", "ar": 1.3333}, {"src": "img/r1_03.jpg", "ar": 1.3333}, {"src": "img/r1_04.jpg", "ar": 0.75}, {"src": "img/r1_05.jpg", "ar": 1.3333}, {"src": "img/r1_06.jpg", "ar": 0.75}]}, {"name": "Habilidades Socioemocionales", "color": "#FBB317", "territorios": "Barbosa · El Bagre · El Carmen de Viboral · La Ceja · Medellín · Remedios - Segovia · Tarso", "photos": [{"src": "img/r2_00.jpg", "ar": 0.75}, {"src": "img/r2_01.jpg", "ar": 1.0894}, {"src": "img/r2_02.jpg", "ar": 0.75}, {"src": "img/r2_03.jpg", "ar": 0.75}, {"src": "img/r2_04.jpg", "ar": 0.75}, {"src": "img/r2_05.jpg", "ar": 0.6664}, {"src": "img/r2_06.jpg", "ar": 1.5005}, {"src": "img/r2_07.jpg", "ar": 0.75}]}];
+const ROOMS = [{"name": "Nuevas Tecnologías", "color": "#0AABCC", "territorios": "El Carmen de Viboral · La Ceja · Medellín · Nuquí", "photos": [{"src": "img/r0_00.jpg", "ar": 0.75}, {"src": "img/r0_01.jpg", "ar": 0.75}, {"src": "img/r0_02.jpg", "ar": 0.75}, {"src": "img/r0_03.jpg", "ar": 0.75}, {"src": "img/r0_04.jpg", "ar": 1.3333}, {"src": "img/r0_05.jpg", "ar": 0.75}, {"src": "img/r0_06.jpg", "ar": 0.75}, {"src": "img/r0_07.jpg", "ar": 0.75}, {"src": "img/r0_08.jpg", "ar": 0.75}, {"src": "img/r0_09.jpg", "ar": 0.75}, {"src": "img/r0_10.jpg", "ar": 0.75}, {"src": "img/r0_11.jpg", "ar": 1.7766}, {"src": "img/r0_12.jpg", "ar": 0.75}, {"src": "img/r0_13.jpg", "ar": 0.75}, {"src": "img/r0_14.jpg", "ar": 1.3333}, {"src": "img/r0_15.jpg", "ar": 1.4159}]}, {"name": "Inglés", "color": "#EF4826", "territorios": "El Carmen de Viboral · Medellín", "photos": [{"src": "img/r1_00.jpg", "ar": 1.3333}, {"src": "img/r1_01.jpg", "ar": 0.75}, {"src": "img/r1_02.jpg", "ar": 1.3333}, {"src": "img/r1_03.jpg", "ar": 1.3333}, {"src": "img/r1_04.jpg", "ar": 0.75}, {"src": "img/r1_05.jpg", "ar": 1.3333}, {"src": "img/r1_06.jpg", "ar": 0.75}]}, {"name": "Habilidades Socioemocionales y para la Vida", "color": "#FBB317", "territorios": "Barbosa · El Bagre · El Carmen de Viboral · La Ceja · Medellín · Quibdó · Remedios · Tarso", "photos": [{"src": "img/r2_00.jpg", "ar": 1.0894}, {"src": "img/r2_01.jpg", "ar": 0.75}, {"src": "img/r2_02.jpg", "ar": 1.3333}, {"src": "img/r2_03.jpg", "ar": 0.75}, {"src": "img/r2_04.jpg", "ar": 0.75}, {"src": "img/r2_05.jpg", "ar": 0.75}, {"src": "img/r2_06.jpg", "ar": 0.75}, {"src": "img/r2_07.jpg", "ar": 1.1042}, {"src": "img/r2_08.jpg", "ar": 0.75}, {"src": "img/r2_09.jpg", "ar": 0.75}, {"src": "img/r2_10.jpg", "ar": 1.5005}, {"src": "img/r2_11.jpg", "ar": 1.5005}, {"src": "img/r2_12.jpg", "ar": 0.75}]}, {"name": "Robótica", "color": "#2F80B5", "territorios": "El Bagre · El Carmen de Viboral · La Ceja · Medellín · Nariño · Quibdó · Tarso", "photos": [{"src": "img/r3_00.jpg", "ar": 0.75}, {"src": "img/r3_01.jpg", "ar": 0.75}, {"src": "img/r3_02.jpg", "ar": 0.7507}, {"src": "img/r3_03.jpg", "ar": 0.75}, {"src": "img/r3_04.jpg", "ar": 0.75}, {"src": "img/r3_05.jpg", "ar": 0.75}, {"src": "img/r3_06.jpg", "ar": 0.75}, {"src": "img/r3_07.jpg", "ar": 0.75}, {"src": "img/r3_08.jpg", "ar": 0.75}]}, {"name": "TechLabs", "color": "#74489B", "territorios": "Barbosa · El Bagre · El Carmen de Viboral · La Ceja · Medellín · Remedios · Tarso", "photos": [{"src": "img/r4_00.jpg", "ar": 0.75}, {"src": "img/r4_01.jpg", "ar": 0.75}, {"src": "img/r4_02.jpg", "ar": 0.75}, {"src": "img/r4_03.jpg", "ar": 1.087}, {"src": "img/r4_04.jpg", "ar": 0.75}, {"src": "img/r4_05.jpg", "ar": 1.4988}, {"src": "img/r4_06.jpg", "ar": 0.75}]}, {"name": "Voluntarios y Becas", "color": "#ABD037", "territorios": "", "photos": [{"src": "img/r5_00.jpg", "ar": 0.75}, {"src": "img/r5_01.jpg", "ar": 1.3333}, {"src": "img/r5_02.jpg", "ar": 1.3356}, {"src": "img/r5_03.jpg", "ar": 1.3333}, {"src": "img/r5_04.jpg", "ar": 1.0}, {"src": "img/r5_05.jpg", "ar": 1.0}]}];
 const PHOTO_H = 1.25, EYE = 1.6, ZOOM = 1.8, PULL = 1.4;
 const easeOut = x => 1 - Math.pow(1 - x, 3);
+const easeBack = x => 1 + 2.2 * Math.pow(x - 1, 3) + 1.2 * Math.pow(x - 1, 2);
+const INTRO = 4200;   // ms que dura la bienvenida del muñeco
 
 // textura de brillo suave (rectángulo difuminado)
 function glowTex() {
@@ -166,7 +168,7 @@ AFRAME.registerComponent('gallery', {
       const photo = new THREE.Mesh(new THREE.PlaneGeometry(w, PHOTO_H), mat);
       g.add(glow, frame, photo);
       this.loader.load(p.src, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; mat.map = t; mat.color.set(0xffffff); mat.needsUpdate = true; });
-      g.userData = { a: o.a, y: o.y, R: o.R, s: 0, dim: 1, delay: 250 + i * 90, ph: Math.random() * 6, photo, frame, glow };
+      g.userData = { a: o.a, y: o.y, R: o.R, s: 0, dim: 1, delay: INTRO + i * 90, ph: Math.random() * 6, photo, frame, glow };
       this.group.add(g); this.items.push(g);
     });
     this.buildTop(k, col);
@@ -175,6 +177,7 @@ AFRAME.registerComponent('gallery', {
     sign.setAttribute('src', `ui/sign${k}.png`);
     this.signY = room.photos.length > 10 ? 3.5 : 2.85;
     sign.setAttribute('position', `0 ${this.signY} ${-(R - 0.05)}`);
+    this.buildMascot(k, R);
     document.getElementById('floorLogo').setAttribute('src', `ui/logo${k}.png`);
     const ring = document.getElementById('ring');
     ring.setAttribute('material', `color:${room.color}; shader:flat; side:double; transparent:true; opacity:0.9`);
@@ -202,9 +205,65 @@ AFRAME.registerComponent('gallery', {
       this.loader.load(p.src, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; mat.map = t; mat.color.set(0xffffff); mat.needsUpdate = true; });
       g.position.set(Math.sin(a) * D * Math.cos(el), D * Math.sin(el), -Math.cos(a) * D * Math.cos(el));
       g.lookAt(0, 0, 0);
-      g.userData = { s: 0, delay: 1200 + i * 120, photo, frame, glow };
+      g.userData = { s: 0, delay: INTRO + 900 + i * 120, photo, frame, glow };
       this.top.add(g); this.topItems.push(g);
     });
+  },
+  restart() {   // vuelve a empezar la sala actual (al entrar desde la portada)
+    this.items.forEach(g => this.dispose(g)); this.items = [];
+    this.topItems.forEach(g => { this.dispose(g); this.top.remove(g); }); this.topItems = [];
+    this.build(this.idx);
+  },
+  buildMascot(k, R) {
+    // muñeco: logo con brazos que saluda y luego sube junto al letrero
+    if (this.mascot) { this.mascot.traverse(o => { if (o.material) { o.material.map && o.material.map.dispose(); o.material.dispose(); o.geometry.dispose(); } }); this.el.object3D.remove(this.mascot); }
+    const tex = src => { const t = this.loader.load(src); t.colorSpace = THREE.SRGBColorSpace; return t; };
+    const m = new THREE.Group(), body = new THREE.Group(); m.add(body);
+    const D = 0.75;
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(D, D), new THREE.MeshBasicMaterial({ map: tex(`ui/logo${k}.png`), transparent: true, alphaTest: 0.3 }));
+    body.add(face);
+    const armMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const arms = [-1, 1].map(sd => {
+      const pivot = new THREE.Group(); pivot.position.set(sd * D * 0.44, -D * 0.05, -0.01);
+      const arm = new THREE.Mesh(new THREE.PlaneGeometry(0.075, 0.3), armMat); arm.position.y = 0.15; pivot.add(arm);
+      const hand = new THREE.Mesh(new THREE.CircleGeometry(0.06, 20), armMat); hand.position.y = 0.31; pivot.add(hand);
+      body.add(pivot); return pivot;
+    });
+    const bubble = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 1.15 * 520 / 1400),
+      new THREE.MeshBasicMaterial({ map: tex(`ui/hello${k}.png`), transparent: true, opacity: 0, depthWrite: false }));
+    bubble.position.set(0.62, 0.62, 0.02); m.add(bubble);
+    m.traverse(o => o.renderOrder = 4); bubble.renderOrder = 5;   // siempre por encima del letrero
+    const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.32, 32), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthWrite: false }));
+    shadow.rotation.x = -Math.PI / 2; this.el.object3D.add(shadow);
+    m.userData = { start: null,
+      perch: new THREE.Vector3(-1.75, this.signY + 0.05, -(R - 0.25)), body, arms, bubble, shadow, hello: false };
+    m.scale.setScalar(0.001); this.el.object3D.add(m); this.mascot = m;
+    if (this.mascotShadow) { this.mascotShadow.geometry.dispose(); this.mascotShadow.material.dispose(); this.el.object3D.remove(this.mascotShadow); }
+    this.mascotShadow = shadow;
+  },
+  tickMascot(now, sec) {
+    const m = this.mascot; if (!m) return; const u = m.userData, t = now - this.t0;
+    if (!u.start) {   // aparece frente a donde mira la persona en ese momento
+      const f = this.fwd.clone(); f.y = 0; f.normalize();
+      u.start = f.multiplyScalar(1.9).add(new THREE.Vector3(this.camPos.x, 1.45, this.camPos.z));
+    }
+    const pop = Math.min(1, Math.max(0, (t - 200) / 650));
+    const fly = easeOut(Math.min(1, Math.max(0, (t - (INTRO - 700)) / 1300)));
+    if (!u.hello && t > 250) { u.hello = true; sfx.hello(); }
+    const talk = t > 700 && t < INTRO - 700;
+    // posición: frente a la persona y luego junto al letrero
+    m.position.lerpVectors(u.start, u.perch, fly);
+    m.position.y += Math.sin(fly * Math.PI) * 0.6 + Math.sin(sec * 1.6) * 0.05;
+    m.scale.setScalar(Math.max(0.001, (pop < 1 ? easeBack(pop) : 1) * (1 - 0.35 * fly)));
+    m.lookAt(this.camPos.x, m.position.y, this.camPos.z);
+    // mientras habla: se balancea y saluda
+    u.body.rotation.z = talk ? Math.sin(sec * 7) * 0.07 : Math.sin(sec * 1.3) * 0.03;
+    u.body.scale.set(1, talk ? 1 + Math.sin(sec * 13) * 0.035 : 1, 1);
+    u.arms[1].rotation.z = talk ? -0.5 - Math.sin(sec * 9) * 0.55 : -2.5 + Math.sin(sec * 1.5) * 0.08;
+    u.arms[0].rotation.z = talk ? 0.9 + Math.sin(sec * 3) * 0.15 : 2.5 - Math.sin(sec * 1.5) * 0.08;
+    const bo = t < 800 ? Math.max(0, (t - 500) / 300) : t < INTRO - 900 ? 1 : Math.max(0, 1 - (t - (INTRO - 900)) / 400);
+    u.bubble.material.opacity = bo; u.bubble.scale.setScalar(0.8 + 0.2 * bo);
+    u.shadow.position.set(m.position.x, 0.015, m.position.z); u.shadow.material.opacity = 0.35 * pop * (1 - fly);
   },
   dispose(g) {
     g.children.forEach(m => { m.material.map && m.material.map !== this.glow && m.material.map.dispose(); m.material.dispose(); m.geometry.dispose(); });
@@ -281,6 +340,7 @@ AFRAME.registerComponent('gallery', {
       u.photo.material.opacity = u.frame.material.opacity = e;
       u.glow.material.opacity = e * (0.08 + 0.5 * u.s);
     }
+    this.tickMascot(now, sec);
     const sign = document.getElementById('sign').object3D;
     sign.position.y = this.signY + Math.sin(sec * 0.6) * 0.05;
   }
@@ -329,6 +389,8 @@ const sfx = (() => {
   return {
     start() { try { init(); ctx.resume(); } catch (e) {} },
     room(k) { key = k % KEYS.length; step = 0; },
+    hello() { if (!ctx || !on) return; const t = ctx.currentTime;   // "¡hola!" en campanitas
+      note(KEYS[key] + 19, t, 0.07, true); note(KEYS[key] + 24, t + 0.14, 0.07, true); },
     whoosh() { if (!ctx || !on) return; const t = ctx.currentTime;     // campanitas que suben al cambiar de sala
       [0, 4, 7, 12, 16].forEach((m, i) => note(KEYS[key] + 12 + m, t + i * 0.07, 0.05, true)); },
     toggle() { on = !on; if (ctx) master.gain.setTargetAtTime(on ? 0.8 : 0, ctx.currentTime, 0.3); return on; }
@@ -407,7 +469,7 @@ function go(step) { document.querySelector('[gallery]').components.gallery.go(st
 const intro = document.getElementById('intro'), hud = document.getElementById('hud'), scene = document.querySelector('a-scene');
 document.getElementById('introLogos').innerHTML = ROOMS.map((r, i) => `<img src="ui/logo${i}.png" alt="${r.name}">`).join('');
 document.getElementById('introRooms').innerHTML = ROOMS.map((r, i) => `<div><b>Sala ${i + 1}: ${r.name}</b> · ${r.photos.length} fotos</div>`).join('');
-function start() { intro.hidden = true; hud.hidden = false; sfx.start(); }
+function start() { intro.hidden = true; hud.hidden = false; sfx.start(); setTimeout(() => document.querySelector('[gallery]').components.gallery.restart(), 400); }
 document.getElementById('enterScreen').onclick = start;
 document.getElementById('enterVR').onclick = () => { start(); try { scene.enterVR(); } catch (e) {} };
 if (!navigator.xr) document.getElementById('enterVR').hidden = true;
